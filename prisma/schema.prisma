@@ -1,0 +1,148 @@
+// AI SafeCheck Lite — Prisma Schema
+// Datenbank: SQLite (lokal, datenschutzfreundlich)
+//
+// Wichtiger Datenschutz-Hinweis:
+// - Der Originaltext wird NUR gespeichert, wenn der Nutzer es ausdruecklich erlaubt.
+// - Findings speichern nur MASKIERTE Auszuege, niemals vollstaendige Secrets.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("owner") // owner | member (Platzhalter fuer Nutzerverwaltung)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  scans     Scan[]
+  watchlist WatchlistTerm[]
+  licenses  License[]
+  settings  AppSettings?
+}
+
+model Scan {
+  id           String   @id @default(cuid())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Eingabe-Art: text | code | email
+  inputType    String   @default("text")
+
+  // Datenschutz: Originaltext ist OPTIONAL.
+  // Wird nur befuellt, wenn der Nutzer "Originaltext speichern" aktiviert hat.
+  originalText String?
+
+  // Aufbereitete, sichere Ausgabe (Secrets maskiert).
+  redactedText String?
+
+  riskScore    Int      @default(0)
+  severity     String   @default("low") // low | medium | high | critical
+  findingCount Int      @default(0)
+
+  // Kurze Zusammenfassung (z.B. Kategorien) als JSON-String.
+  summaryJson  String?
+
+  createdAt    DateTime @default(now())
+
+  findings     Finding[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Finding {
+  id          String   @id @default(cuid())
+  scanId      String
+  scan        Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+
+  ruleId      String
+  category    String   // secret | pii | internal | prompt_injection | risky_instruction
+  severity    String   // low | medium | high | critical
+  title       String
+
+  // NUR maskierter Auszug, niemals das vollstaendige Secret.
+  maskedMatch String
+
+  // Position im Originaltext (fuer Highlight in der UI).
+  startIndex  Int      @default(0)
+  endIndex    Int      @default(0)
+
+  explanation     String
+  recommendation  String
+
+  createdAt   DateTime @default(now())
+
+  @@index([scanId])
+  @@index([category])
+}
+
+model WatchlistTerm {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  term      String
+  // company | project | customer | tool | other
+  type      String   @default("other")
+  severity  String   @default("medium")
+  caseSensitive Boolean @default(false)
+  enabled   Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model License {
+  id           String   @id @default(cuid())
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Lemon-Squeezy-Lizenzschluessel (lokal gespeichert).
+  licenseKey   String   @unique
+  instanceId   String?
+  instanceName String?
+
+  // inactive | active | expired | disabled
+  status       String   @default("inactive")
+  // lite | pro | business
+  tier         String   @default("lite")
+
+  activatedAt  DateTime?
+  expiresAt    DateTime?
+  lastCheckAt  DateTime?
+
+  // Roh-Antwort von Lemon Squeezy als JSON-String (optional).
+  rawJson      String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model AppSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Datenschutzfreundlicher Modus: Originaltext nach Scan verwerfen.
+  storeOriginalText Boolean @default(false)
+
+  // Strenger Modus: niedrigere Schwellen, mehr Warnungen.
+  strictMode        Boolean @default(false)
+
+  // Verlauf ueberhaupt speichern?
+  saveHistory       Boolean @default(true)
+
+  updatedAt         DateTime @updatedAt
+}
