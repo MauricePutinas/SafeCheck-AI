@@ -33,3 +33,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# QA-/Capture-Zwischenartefakte (Roh-Frames, Test-Screenshots)
+/scripts/frames/
+/scripts/shot-*.png

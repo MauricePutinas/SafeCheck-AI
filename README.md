@@ -17,6 +17,16 @@ personenbezogene und interne Firmendaten sowie verdächtige Prompt-Injection-Mus
 
 </div>
 
+<div align="center">
+
+### 🎬 Live-Demo
+
+![SafeCheck AI – Scan-Flow](docs/demo.gif)
+
+_Text einfügen → prüfen → Risiken sehen → bereinigte Version kopieren — alles lokal._
+
+</div>
+
 ---
 
 ## 📌 Das Problem
@@ -79,6 +89,21 @@ Pruefung läuft **lokal im Browser**, regelbasiert, ohne externen KI-Aufruf. Erk
 - Lizenz-Aktivierung (`POST /api/license/activate`)
 - Webhook-Endpoint mit **HMAC-SHA256-Signaturprüfung** (`/api/webhooks/lemon-squeezy`)
 - Läuft **auch ohne** Konfiguration voll (Status `inactive`, lokal gespeichert)
+
+---
+
+## 📸 Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><b>Landingpage</b><br/><img src="docs/landing.png" alt="Landingpage" /></td>
+    <td width="50%"><b>Scanner mit Ergebnis</b><br/><img src="docs/scanner.png" alt="Scanner mit Findings, Score und Safe Rewrite" /></td>
+  </tr>
+  <tr>
+    <td width="50%"><b>Report (druckbar / PDF)</b><br/><img src="docs/report.png" alt="Sicherheits-Report" /></td>
+    <td width="50%"><b>Adminbereich</b><br/><img src="docs/admin.png" alt="Adminbereich mit Lizenz, Statistik und Watchlist" /></td>
+  </tr>
+</table>
 
 ---
 
